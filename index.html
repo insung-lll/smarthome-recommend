@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나에게 맞는 스마트홈 찾기 — Zibis</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F7F4EF;
+    --warm-white: #FDFCFA;
+    --sand: #E8E0D4;
+    --taupe: #C4B8A8;
+    --brown: #8B7355;
+    --dark: #2C2416;
+    --green: #4A6741;
+    --green-light: #6B8F62;
+    --purple: #6B5B9E;
+    --accent: #4A6741;
+    --text: #2C2416;
+    --text-muted: #8B7355;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ── Header ── */
+  .logo {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--dark);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  /* ── Quiz Container ── */
+  .quiz-wrap {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  /* ── Progress ── */
+  .progress-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 32px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.1s ease forwards;
+  }
+  .progress-dot {
+    height: 3px;
+    flex: 1;
+    background: var(--sand);
+    border-radius: 2px;
+    transition: background 0.4s ease;
+  }
+  .progress-dot.active { background: var(--accent); }
+
+  /* ── Question Card ── */
+  .question-card {
+    background: var(--warm-white);
+    border-radius: 24px;
+    padding: 52px 48px;
+    box-shadow: 0 2px 40px rgba(44,36,22,0.07);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.5s 0.2s ease forwards;
+    min-height: 340px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .q-number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--taupe);
+    margin-bottom: 20px;
+  }
+
+  .q-text {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--dark);
+    margin-bottom: 40px;
+    flex: 1;
+  }
+
+  /* ── Options ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    border: 1.5px solid var(--sand);
+    border-radius: 14px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .option-btn:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(74,103,65,0.12);
+  }
+  .option-btn:hover::before { opacity: 0.03; }
+  .option-btn:active { transform: translateY(0); }
+
+  .option-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--taupe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .option-btn:hover .option-badge {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(74,103,65,0.08);
+  }
+
+  .option-text {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Result ── */
+  .result-card {
+    background: var(--warm-white);
+    border-radius: 24px;
+    padding: 52px 48px;
+    box-shadow: 0 2px 40px rgba(44,36,22,0.07);
+    text-align: center;
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .result-card.show {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .result-icon {
+    width: 160px;
+    height: 160px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .result-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .result-icon.basic { background: #EEF4EC; }
+  .result-icon.standard { background: #EEF0FA; }
+  .result-icon.premium { background: #1A5C3A; }
+
+  .result-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--taupe);
+    margin-bottom: 10px;
+  }
+
+  .result-name {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 16px;
+  }
+
+  .result-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-muted);
+    max-width: 295px;
+    margin-bottom: 12px;
+    word-break: keep-all;
+  }
+
+  .result-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 36px;
+  }
+
+  .result-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+  .feature-tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--cream);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--brown);
+    border: 1px solid var(--sand);
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 40px;
+    background: var(--dark);
+    color: #fff;
+    border-radius: 100px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .cta-btn:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(74,103,65,0.25);
+  }
+  .cta-btn svg { transition: transform 0.2s ease; }
+  .cta-btn:hover svg { transform: translateX(4px); }
+
+  .retry-btn {
+    background: none;
+    border: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--taupe);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+  }
+  .retry-btn:hover { color: var(--brown); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-content {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .q-content.fade-out {
+    opacity: 0;
+    transform: translateX(-16px);
+    pointer-events: none;
+  }
+  .q-content.fade-in {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  /* ── Footer note ── */
+  .footnote {
+    margin-top: 28px;
+    font-size: 12px;
+    color: var(--taupe);
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.3s ease forwards;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    body { padding: 28px 16px; }
+
+    .logo {
+      font-size: 16px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .question-card, .result-card {
+      padding: 28px 20px 22px;
+      border-radius: 18px;
+    }
+
+    .q-number { font-size: 10px; margin-bottom: 14px; }
+    .q-text { font-size: 18px; margin-bottom: 24px; }
+
+    .option-btn { padding: 14px 16px; gap: 12px; border-radius: 12px; }
+    .option-badge { width: 28px; height: 28px; font-size: 11px; }
+    .option-text { font-size: 13px; }
+
+    .progress-bar { margin-top: 22px; gap: 6px; }
+
+    .result-icon { width: 120px; height: 120px; border-radius: 16px; margin-bottom: 18px; }
+    .result-label { font-size: 10px; }
+    .result-name { font-size: 28px; margin-bottom: 10px; }
+    .result-desc { font-size: 13px; margin-bottom: 8px; }
+    .result-price { font-size: 18px; margin-bottom: 24px; }
+    .feature-tag { font-size: 11px; padding: 5px 11px; }
+
+    .cta-btn { padding: 15px 28px; font-size: 13px; width: 100%; justify-content: center; }
+    .retry-btn { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo">나에게 맞는 스마트홈을 알아보세요</div>
+
+<div class="quiz-wrap">
+
+  <!-- Question Card -->
+  <div class="question-card" id="questionCard">
+    <div class="q-content" id="qContent">
+      <div>
+        <div class="q-number" id="qNumber">질문 1 / 3</div>
+        <div class="q-text" id="qText"></div>
+      </div>
+      <div class="options" id="optionsWrap"></div>
+    </div>
+    <!-- Progress -->
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-dot active" id="dot-0"></div>
+      <div class="progress-dot" id="dot-1"></div>
+      <div class="progress-dot" id="dot-2"></div>
+    </div>
+  </div>
+
+  <!-- Result Card -->
+  <div class="result-card" id="resultCard">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-label">추천 패키지</div>
+    <div class="result-name" id="resultName"></div>
+    <div class="result-desc" id="resultDesc"></div>
+    <div class="result-price" id="resultPrice"></div>
+    <div class="result-features" id="resultFeatures"></div>
+    <a class="cta-btn" id="resultLink" href="#" target="_blank">
+      패키지 자세히 보기
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+    <button class="retry-btn" onclick="resetQuiz()">처음부터 다시하기</button>
+  </div>
+
+</div>
+
+
+
+<script>
+  const questions = [
+    {
+      text: "스마트홈으로 가장 먼저\n바꾸고 싶은 게 뭔가요?",
+      options: [
+        { label: "A", text: "조명만 스마트하게 바꾸고 싶어요", value: "A" },
+        { label: "B", text: "조명 + 커튼이 함께 자동으로 움직이길 원해요", value: "B" }
+      ]
+    },
+    {
+      text: "집에서 가장 불편한\n순간은 언제인가요?",
+      options: [
+        { label: "A", text: "자다가 일어나 불 끄기, 밝기 조절이 귀찮아요", value: "A" },
+        { label: "B", text: "아침마다 커튼 열고, 온도 맞추고, 조명 조절하는 게 번거로워요", value: "B" }
+      ]
+    },
+    {
+      text: "스마트홈에 투자할\n예산은요?",
+      options: [
+        { label: "A", text: "300~350만원대면 충분해요", value: "A" },
+        { label: "B", text: "600만원대도 괜찮아요, 집 환경이 확 달라진다면요", value: "B" }
+      ]
+    }
+  ];
+
+  const packages = {
+    basic: {
+      name: "Basic",
+      icon: "img/basic.png",
+      iconClass: "basic",
+      desc: "꼭 필요한 기능만 알차게 담은\n합리적인 첫 스마트홈 패키지",
+      price: "₩2,999,000~",
+      features: ["스마트 조명", "방등", "A/S 1년"],
+      link: "https://zibismart.co.kr/package/basic.html"
+    },
+    standard: {
+      name: "Standard",
+      icon: "img/standard.png",
+      iconClass: "standard",
+      desc: "조명부터 커튼까지, 일상의 모든 불편함을\n자동으로 해결해주는 균형 잡힌 패키지",
+      price: "₩3,599,000~",
+      features: ["스마트 조명", "라인·마그네틱 조명", "스마트 커튼", "A/S 2년"],
+      link: "https://zibismart.co.kr/package/standard.html"
+    },
+    premium: {
+      name: "Premium",
+      icon: "img/premium.png",
+      iconClass: "premium",
+      desc: "온도·습도·공기까지 집 전체가\n알아서 완벽하게 케어하는 프리미엄 패키지",
+      price: "₩5,899,000~",
+      features: ["프리미엄 조명", "스마트 커튼", "스마트 실링팬", "온습도 센서", "A/S 2년"],
+      link: "https://zibismart.co.kr/package/premium.html"
+    }
+  };
+
+  // 분기 로직 (A=0, B=1)
+  const logic = {
+    "AAA": "basic",
+    "AAB": "standard",
+    "ABA": "standard",
+    "ABB": "premium",
+    "BAA": "standard",
+    "BAB": "premium",
+    "BBA": "standard",
+    "BBB": "premium"
+  };
+
+  let current = 0;
+  let answers = [];
+
+  function renderQuestion() {
+    const q = questions[current];
+    document.getElementById('qNumber').textContent = `질문 ${current + 1} / ${questions.length}`;
+    document.getElementById('qText').textContent = q.text;
+
+    const wrap = document.getElementById('optionsWrap');
+    wrap.innerHTML = '';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `
+        <span class="option-badge">${opt.label}</span>
+        <span class="option-text">${opt.text}</span>
+      `;
+      btn.onclick = () => selectAnswer(opt.value);
+      wrap.appendChild(btn);
+    });
+
+    // Progress dots
+    document.querySelectorAll('.progress-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i <= current);
+    });
+  }
+
+  function selectAnswer(value) {
+    answers.push(value);
+    const content = document.getElementById('qContent');
+
+    if (current < questions.length - 1) {
+      // 페이드 아웃
+      content.classList.add('fade-out');
+
+      setTimeout(() => {
+        current++;
+        renderQuestion();
+
+        // 오른쪽에서 들어오는 준비
+        content.classList.remove('fade-out');
+        content.classList.add('fade-in');
+
+        // 브라우저가 fade-in 초기 상태를 그린 후 transition 시작
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            content.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+            content.classList.remove('fade-in');
+            content.style.opacity = '1';
+            content.style.transform = 'translateX(0)';
+            setTimeout(() => {
+              content.style.transition = '';
+              content.style.opacity = '';
+              content.style.transform = '';
+            }, 260);
+          });
+        });
+      }, 200);
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    const key = answers.join('');
+    const pkgKey = logic[key] || 'standard';
+    const pkg = packages[pkgKey];
+
+    // qContent 잔여 상태 초기화
+    const content = document.getElementById('qContent');
+    content.classList.remove('fade-out', 'fade-in');
+    content.style.opacity = '';
+    content.style.transform = '';
+    content.style.transition = '';
+
+    document.getElementById('questionCard').style.display = 'none';
+
+    const rc = document.getElementById('resultCard');
+    document.getElementById('resultIcon').innerHTML = `<img src="${pkg.icon}" alt="${pkg.name}">`;
+    document.getElementById('resultIcon').className = `result-icon ${pkg.iconClass}`;
+    document.getElementById('resultName').textContent = pkg.name;
+    document.getElementById('resultDesc').textContent = pkg.desc;
+    document.getElementById('resultPrice').textContent = pkg.price;
+    document.getElementById('resultLink').href = pkg.link;
+
+    const featWrap = document.getElementById('resultFeatures');
+    featWrap.innerHTML = pkg.features.map(f => `<span class="feature-tag">✓ ${f}</span>`).join('');
+
+    rc.style.display = '';
+    rc.classList.add('show');
+
+    document.querySelectorAll('.progress-dot').forEach(d => d.classList.add('active'));
+  }
+
+  function resetQuiz() {
+    current = 0;
+    answers = [];
+
+    // 결과 카드 완전히 숨기기
+    const rc = document.getElementById('resultCard');
+    rc.classList.remove('show');
+    rc.style.display = 'none';
+
+    // 질문 카드 다시 보이기
+    const card = document.getElementById('questionCard');
+    card.style.display = 'flex';
+
+    // qContent 상태 초기화
+    const content = document.getElementById('qContent');
+    content.classList.remove('fade-out', 'fade-in');
+    content.style.opacity = '1';
+    content.style.transform = 'none';
+    content.style.transition = '';
+
+    renderQuestion();
+  }
+
+  // Init
+  renderQuestion();
+</script>
+</body>
+</html>
