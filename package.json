@@ -1,0 +1,13 @@
+{
+  "name": "smarthome-recommend",
+  "version": "1.0.0",
+  "description": "지비스 스마트홈 패키지(베이직 / 스탠다드 / 프리미엄) 중 방문자에게 맞는 패키지를 추천해주는 인터랙티브 퀴즈 페이지",
+  "private": true,
+  "scripts": {
+    "dev": "serve -l 3000 .",
+    "start": "serve -l 3000 ."
+  },
+  "dependencies": {
+    "serve": "^14.2.6"
+  }
+}
